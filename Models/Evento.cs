@@ -8,5 +8,8 @@
         public string Ubicacion { get; set; } = string.Empty;
         public string Descripcion { get; set; } = string.Empty;
         public string Resultado { get; set; } = string.Empty;
+
+        //Relacion
+        public ICollection<ParticipaEvento> Participantes { get; set; } = new List<ParticipaEvento>();
     }
 }

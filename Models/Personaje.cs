@@ -11,6 +11,10 @@
         public bool FuerzaSensitiva { get; set; }
         public string? ImagenUrl { get; set; } = string.Empty;
 
-        
+
+
+        //Relaciones
+        public ICollection<ParticipaEvento> Eventos { get; set; } = new List<ParticipaEvento>(); // para poder hacer la relacion de muchos a muchos entre Personaje y Evento, se necesita una tabla intermedia que es ParticipaEvento
+
     }
 }
