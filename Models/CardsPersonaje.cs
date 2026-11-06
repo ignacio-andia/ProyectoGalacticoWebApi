@@ -7,5 +7,9 @@
         public string HabilidadEspecial { get; set; } = string.Empty;
         public string Arma { get; set; } = string.Empty; // si da tiempo se añadira un sistema de armas
         public int NivelDePeligrosidad { get; set; }
+
+        //clave foranea
+        public int PersonajeId { get; set; }
+        public Personaje Personaje { get; set; } = null!; // propieda de navegacion para la relacion con Personaje
     }
 }
