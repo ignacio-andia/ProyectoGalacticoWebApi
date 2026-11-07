@@ -5,6 +5,7 @@ using ProyectoGalacticoWebApi.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ProyectoGalacticoWebApi.Services
 {
@@ -81,6 +82,37 @@ namespace ProyectoGalacticoWebApi.Services
         }
 
 
+        public async Task<bool> ActualizarPersonajeAsync(int Id, ActualizarPersonajeDto dto)
+        {
+            var personaje = await _context.Personajes.FirstOrDefaultAsync(p => p.Id == Id);
+            if (personaje == null)
+            {
+                return false;
+            }
+
+            personaje.Nombre = dto.Nombre;
+            personaje.Especie = dto.Especie;
+            personaje.Faccion = dto.Faccion;
+            personaje.Afiliacion = dto.Afiliacion;
+            personaje.Estado = dto.Estado;
+            personaje.FuerzaSensitiva = dto.FuerzaSensitiva;
+            personaje.ImagenUrl = dto.ImagenUrl;
+
+            await _context.SaveChangesAsync();
+            return true;    
+        }
+
+        public async Task<bool> EliminarPersonajeAsync(int Id)
+        {
+            var personaje = await _context.Personajes.FirstOrDefaultAsync(p => p.Id == Id);
+            if (personaje == null)
+            {
+                return false;
+            }
+            _context.Personajes.Remove(personaje);
+            await _context.SaveChangesAsync();
+            return true;
+        }
 
     }
 }
