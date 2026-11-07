@@ -15,6 +15,7 @@ namespace ProyectoGalacticoWebApi.Dtos
         [Required]
         [StringLength(70)]
         public string Afiliacion { get; set; } = string.Empty;
+        public EstadoPersonaje? Estado { get; set; }
         public bool FuerzaSensitiva { get; set; }
         [StringLength(300)]
         public string? ImagenUrl { get; set; } = string.Empty;
