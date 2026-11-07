@@ -35,7 +35,31 @@ namespace ProyectoGalacticoWebApi.Controllers
         public async Task<ActionResult> CrearPersonaje(CrearPersonajeDto dto)
         {
             var personaje = await _personajeService.CrearPersonajeAsync(dto);
-            return CreatedAtAction(nameof(ObtenerPersonajePorId), new { id = personaje.Id }, personaje);
+            return CreatedAtAction(nameof(ObtenerPersonajePorId), new { id = personaje.Id }, personaje); //Para el 221
         }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> ActualizarPersonaje(int  id, ActualizarPersonajeDto dto)
+        {
+            var personaje = await _personajeService.ActualizarPersonajeAsync(id, dto);
+            if (!personaje)
+            {
+                return NotFound();
+            }
+            return NoContent();
+        }
+
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> EliminarPersonaje(int  id)
+        {
+            var personaje = await _personajeService.EliminarPersonajeAsync(id);
+            if (!personaje)
+            {
+                return NotFound();
+            }
+            return NoContent();
+        }
+
     }
 }
