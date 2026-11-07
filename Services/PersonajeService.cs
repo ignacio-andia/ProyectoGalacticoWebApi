@@ -26,9 +26,9 @@ namespace ProyectoGalacticoWebApi.Services
                 Id = p.Id,
                 Nombre = p.Nombre,
                 Especie = p.Especie,
-                Faccion = p.Faccion,
+                Faccion = p.Faccion.ToString(),
                 Afiliacion = p.Afiliacion,
-                Estado = p.Estado,
+                Estado = p.Estado?.ToString(),
                 FuerzaSensitiva = p.FuerzaSensitiva,
                 ImagenUrl = p.ImagenUrl
             });
@@ -46,9 +46,9 @@ namespace ProyectoGalacticoWebApi.Services
                 Id = personaje.Id,
                 Nombre = personaje.Nombre,
                 Especie = personaje.Especie,
-                Faccion = personaje.Faccion,
+                Faccion = personaje.Faccion.ToString(),
                 Afiliacion = personaje.Afiliacion,
-                Estado = personaje.Estado,
+                Estado = personaje.Estado?.ToString(),
                 FuerzaSensitiva = personaje.FuerzaSensitiva,
                 ImagenUrl = personaje.ImagenUrl
             };
@@ -73,9 +73,9 @@ namespace ProyectoGalacticoWebApi.Services
                 Id = personaje.Id,
                 Nombre = personaje.Nombre,
                 Especie = personaje.Especie,
-                Faccion = personaje.Faccion,
+                Faccion = personaje.Faccion.ToString(),
                 Afiliacion = personaje.Afiliacion,
-                Estado = personaje.Estado,
+                Estado = personaje.Estado?.ToString(),
                 FuerzaSensitiva = personaje.FuerzaSensitiva,
                 ImagenUrl = personaje.ImagenUrl
             };
