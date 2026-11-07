@@ -19,5 +19,23 @@ namespace ProyectoGalacticoWebApi.Controllers
             var personajes = await _personajeService.ListarPersonajesAsync();
             return Ok(personajes);
         }
+
+        [HttpGet("{Id}")]
+        public async Task<ActionResult> ObtenerPersonajePorId(int Id)
+        {
+            var personaje = await _personajeService.ObtenerPersonajePorIdAsync(Id);
+            if(personaje == null)
+            {
+                return NotFound();
+            }
+            return Ok(personaje);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> CrearPersonaje(CrearPersonajeDto dto)
+        {
+            var personaje = await _personajeService.CrearPersonajeAsync(dto);
+            return CreatedAtAction(nameof(ObtenerPersonajePorId), new { id = personaje.Id }, personaje);
+        }
     }
 }

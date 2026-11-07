@@ -34,9 +34,9 @@ namespace ProyectoGalacticoWebApi.Services
             });
         }
 
-        public async Task<PersonajeDto?> ObtenerPersonajePorIdAsync(int Id)
+        public async Task<PersonajeDto?> ObtenerPersonajePorIdAsync(int id)
         {
-            var personaje = await _context.Personajes.AsNoTracking().FirstOrDefaultAsync(p => p.Id == Id);
+            var personaje = await _context.Personajes.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
             if(personaje == null)
             {
                 return null;
