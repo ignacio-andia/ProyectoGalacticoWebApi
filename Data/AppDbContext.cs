@@ -95,6 +95,7 @@ namespace ProyectoGalacticoWebApi.Data
                     .HasMaxLength(500);
 
                 e.Property(ev => ev.Resultado)
+                    .IsRequired(false)
                     .HasMaxLength(200);
             });
         }
