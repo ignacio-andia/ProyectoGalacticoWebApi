@@ -66,5 +66,65 @@ namespace ProyectoGalacticoWebApi.Services
                 Resultado = m.Resultado?.ToString()
             });
         }
+
+
+        public async Task<ResultadoOperacion<bool>> AgregarParticipanteAsync(int misionId, int personajeId)
+        {
+            var mision = await _context.Misiones.AsNoTracking().FirstOrDefaultAsync(m => m.Id == misionId);
+            if (mision is null)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.NotFound, "La misión no existe");
+            }
+            if (mision.Estado != EstadoMision.Disponible)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.Conflict, "La misión ya no está disponible para agregar participantes");
+            }
+
+            var personaje = await _context.Personajes.AsNoTracking().FirstOrDefaultAsync(p => p.Id == personajeId);
+            if (personaje is null)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.NotFound, "El personaje no existe");
+            }
+            if (personaje.Estado != EstadoPersonaje.Vivo)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.BadRequest, "Solo pueden participar personajes vivos");
+            }
+
+            var tieneCard = await _context.CardsPersonajes.AsNoTracking().AnyAsync(c => c.PersonajeId == personajeId);
+            if (!tieneCard)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.BadRequest, "El personaje no tiene Card");
+            }
+
+            var yaParticipa = await _context.ParticipaMisiones.AsNoTracking().AnyAsync(pm => pm.IdPersonaje == personajeId && pm.IdMision == misionId);
+            if (yaParticipa)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.Conflict, "El personaje ya participa en esta misión");
+            }
+
+            var participaEnOtraMision = await _context.ParticipaMisiones.AsNoTracking().AnyAsync(pm => pm.IdPersonaje == personajeId && pm.Mision.Estado == EstadoMision.Disponible);
+            if (participaEnOtraMision)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.Conflict, "El personaje ya participa en otra misión que todavía no ha finalizado");
+            }
+
+            var faccionExistente = await _context.ParticipaMisiones.AsNoTracking().Where(pm => pm.IdMision == misionId).Select(pm => (Faccion?)pm.Personaje.Faccion).FirstOrDefaultAsync();
+            if (faccionExistente.HasValue && faccionExistente.Value != personaje.Faccion)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.BadRequest, "Todos los participantes de una misión deben pertenecer a la misma facción");
+            }
+
+            var participacion = new ParticipaMision
+            {
+                IdPersonaje = personajeId,
+                IdMision = misionId
+            };
+
+            _context.ParticipaMisiones.Add(participacion);
+            await _context.SaveChangesAsync();
+
+            return ResultadoOperacion<bool>.Exito(true);
+        }
+
     }
 }
