@@ -47,9 +47,9 @@ namespace ProyectoGalacticoWebApi.Controllers
         }
 
         [HttpGet("personaje/{personajeId:int}")]
-        public async Task<IActionResult> ObtenerCardDePersonaje(int id)
+        public async Task<IActionResult> ObtenerCardDePersonaje(int personajeId)
         {
-            var card = await _cardsService.ObtenerCardDePersonajeAsync(id);
+            var card = await _cardsService.ObtenerCardDePersonajeAsync(personajeId);
             if (card == null)
             {
                 return NotFound();
