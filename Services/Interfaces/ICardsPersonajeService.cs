@@ -1,4 +1,5 @@
 ﻿using ProyectoGalacticoWebApi.Dtos;
+using ProyectoGalacticoWebApi.Results;
 
 namespace ProyectoGalacticoWebApi.Services.Interfaces
 {
@@ -7,9 +8,9 @@ namespace ProyectoGalacticoWebApi.Services.Interfaces
         Task<IEnumerable<CardsPersonajeDto>> ListarCardsAsync();
         Task<CardsPersonajeDto?> ObtenerCardPorIdAsync(int id);
         Task<CardsPersonajeDto?> ObtenerCardDePersonajeAsync(int id);
-        Task<CardsPersonajeDto> CrearCardAsync(CrearCardsPersonajeDto dto);
-        Task<bool> ActualizarCardAsync(int id, ActualizarCardsPersonajeDto dto);
-        Task<bool> EliminarCardAsync(int id);
+        Task<ResultadoOperacion<CardsPersonajeDto>> CrearCardAsync(CrearCardsPersonajeDto dto);
+        Task<ResultadoOperacion<bool>> ActualizarCardAsync(int id, ActualizarCardsPersonajeDto dto);
+        Task<ResultadoOperacion<bool>> EliminarCardAsync(int id);
 
     }
 }
