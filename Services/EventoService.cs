@@ -100,49 +100,42 @@ namespace ProyectoGalacticoWebApi.Services
 
         public async Task<ResultadoOperacion<bool>> AgregarParticipanteAsync(int eventoId, int personajeId)
         {
-            var ExistePersonaje = await _context.Personajes.AsNoTracking().AnyAsync(p => p.Id == personajeId);
-            if (!ExistePersonaje)
+            var personaje = await _context.Personajes.AsNoTracking().FirstOrDefaultAsync(p => p.Id == personajeId);
+            if (personaje is null)
             {
-                return ResultadoOperacion<bool>.Error(TipoResultado.NotFound, "El Personaje No Existe");
+                return ResultadoOperacion<bool>.Error(TipoResultado.NotFound, "El personaje no existe");
             }
 
             var tieneCard = await _context.CardsPersonajes.AsNoTracking().AnyAsync(c => c.PersonajeId == personajeId);
             if (!tieneCard)
             {
-                return ResultadoOperacion<bool>.Error(TipoResultado.BadRequest, "El personaje No tiene Card");
+                return ResultadoOperacion<bool>.Error(TipoResultado.BadRequest, "El personaje no tiene Card");
             }
 
-            var ExisteEvento = await _context.Eventos.AsNoTracking().AnyAsync(e => e.Id == eventoId);
-            if (!ExisteEvento)
+            var existeEvento = await _context.Eventos.AsNoTracking().AnyAsync(e => e.Id == eventoId);
+            if (!existeEvento)
             {
-                return ResultadoOperacion<bool>.Error(TipoResultado.NotFound, "Noexiste Evento");
+                return ResultadoOperacion<bool>.Error(TipoResultado.NotFound, "El evento no existe");
             }
 
-            var personaje = await _context.Personajes.AsNoTracking().FirstOrDefaultAsync(pe => pe.Id == personajeId);
-            if (personaje is null)
-            {
-                return ResultadoOperacion<bool>.Error(
-                    TipoResultado.NotFound,"El personaje indicado no existe.");
-            }
             if (personaje.Estado == EstadoPersonaje.Muerto)
             {
-                return ResultadoOperacion<bool>.Error(TipoResultado.BadRequest, "El personaje esta Muerto");
+                return ResultadoOperacion<bool>.Error(TipoResultado.BadRequest, "El personaje está muerto");
             }
 
-            var YaParticipa = await _context.ParticipaEventos.AsNoTracking().AnyAsync(y => y.IdPersonaje == personajeId && y.IdEvento == eventoId);
-            if (YaParticipa)
+            var yaParticipa = await _context.ParticipaEventos.AsNoTracking().AnyAsync(y => y.IdPersonaje == personajeId && y.IdEvento == eventoId);
+            if (yaParticipa)
             {
-                return ResultadoOperacion<bool>.Error(TipoResultado.Conflict, "El personaja ya Participa en el Evento");
-
+                return ResultadoOperacion<bool>.Error(TipoResultado.Conflict, "El personaje ya participa en el evento");
             }
 
-            var Participacion = new ParticipaEvento
+            var participacion = new ParticipaEvento
             {
                 IdPersonaje = personajeId,
                 IdEvento = eventoId
             };
 
-            _context.ParticipaEventos.Add(Participacion);
+            _context.ParticipaEventos.Add(participacion);
             await _context.SaveChangesAsync();
 
             return ResultadoOperacion<bool>.Exito(true);
