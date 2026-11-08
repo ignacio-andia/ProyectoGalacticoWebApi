@@ -24,6 +24,27 @@ namespace ProyectoGalacticoWebApi.Controllers
             return Ok(cards);
         }
 
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> ObtenerCardPorId(int id)
+        {
+            var card = await _cardsService.ObtenerCardPorIdAsync(id);
+            if (card == null)
+            {
+                return NotFound();
+            }
+            return Ok(card);
+        }
+
+        [HttpGet("personaje/{personajeId:int}")]
+        public async Task<IActionResult> ObtenerCardDePersonaje(int id)
+        {
+            var card = await _cardsService.ObtenerCardDePersonajeAsync(id);
+            if (card == null)
+            {
+                return NotFound();
+            }
+            return Ok(card);
+        }
 
     }
 }
