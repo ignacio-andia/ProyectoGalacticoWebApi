@@ -116,5 +116,18 @@ namespace ProyectoGalacticoWebApi.Controllers
             return Ok(participantes);
         }
 
+        [HttpGet("personaje/{personajeId:int}")]
+        public async Task<IActionResult> ObtenerEventosPorPersonaje(int personajeId)
+        {
+            var eventos = await _eventoService.ObtenerEventosPorPersonajeAsync(personajeId);
+
+            if (eventos == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(eventos);
+        }
+
     }
 }
