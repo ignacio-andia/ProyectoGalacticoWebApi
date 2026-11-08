@@ -59,5 +59,19 @@ namespace ProyectoGalacticoWebApi.Controllers
                 new { id = resultado.Datos!.Id },
                 resultado.Datos);
         }
+
+
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> ActualizarEvento(int id, ActualizarEventoDto dto)
+        {
+            var resultado = await _eventoService.ActualizarEventoAsync(id, dto);
+
+            if (resultado.Tipo != TipoResultado.Success)
+            {
+                return ManejarResultado(resultado);
+            }
+
+            return NoContent();
+        }
     }
 }
