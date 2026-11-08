@@ -87,5 +87,19 @@ namespace ProyectoGalacticoWebApi.Controllers
 
             return NoContent();
         }
+
+
+        [HttpDelete("{eventoId:int}/participante/{personajeId:int}")]
+        public async Task<IActionResult> QuitarParticipante(int eventoId, int personajeId)
+        {
+            var resultado = await _eventoService.QuitarParticipanteAsync(eventoId, personajeId);
+
+            if (resultado.Tipo != TipoResultado.Success)
+            {
+                return ManejarResultado(resultado);
+            }
+
+            return NoContent();
+        }
     }
 }
