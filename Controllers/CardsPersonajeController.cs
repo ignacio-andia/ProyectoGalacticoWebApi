@@ -73,5 +73,18 @@ namespace ProyectoGalacticoWebApi.Controllers
                 resultado.Datos);
         }
 
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> ActualizarCard(int id, ActualizarCardsPersonajeDto dto)
+        {
+            var resultado = await _cardsService.ActualizarCardAsync(id, dto);
+
+            if (resultado.Tipo != TipoResultado.Success)
+            {
+                return ManejarResultado(resultado);
+            }
+
+            return NoContent();
+        }
+
     }
 }
