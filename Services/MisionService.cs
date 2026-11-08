@@ -48,7 +48,23 @@ namespace ProyectoGalacticoWebApi.Services
             return ResultadoOperacion<MisionDto>.Exito(misionDto);
         }
 
-        
 
+        public async Task<IEnumerable<MisionDto>> ListarMisionesAsync()
+        {
+            var misiones = await _context.Misiones.AsNoTracking().ToListAsync();
+
+            return misiones.Select(m => new MisionDto
+            {
+                Id = m.Id,
+                Nombre = m.Nombre,
+                Tipo = m.Tipo,
+                NivelDeDificultad = m.NivelDeDificultad,
+                Descripcion = m.Descripcion,
+                PoderMinimo = m.PoderMinimo,
+                Recompensa = m.Recompensa,
+                Estado = m.Estado.ToString(),
+                Resultado = m.Resultado?.ToString()
+            });
+        }
     }
 }
