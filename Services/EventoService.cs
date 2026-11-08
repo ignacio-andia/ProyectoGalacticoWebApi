@@ -165,5 +165,29 @@ namespace ProyectoGalacticoWebApi.Services
             await _context.SaveChangesAsync();
             return ResultadoOperacion<bool>.Exito(true);
         }
+
+        public async Task<IEnumerable<PersonajeDto>?> ListarParticipantesAsync(int eventoId)
+        {
+            var existeEvento = await _context.Eventos.AnyAsync(e => e.Id == eventoId);
+            if (!existeEvento)
+            {
+                return null;
+            }
+
+            var participantes = await _context.ParticipaEventos.AsNoTracking().Where(pe => pe.IdEvento == eventoId).Include(pe => pe.Personaje).Select(pe => new PersonajeDto
+                {
+                    Id = pe.Personaje.Id,
+                    Nombre = pe.Personaje.Nombre,
+                    Especie = pe.Personaje.Especie,
+                    Faccion = pe.Personaje.Faccion.ToString(),
+                    Afiliacion = pe.Personaje.Afiliacion,
+                    Estado = pe.Personaje.Estado.ToString(),
+                    FuerzaSensitiva = pe.Personaje.FuerzaSensitiva,
+                    ImagenUrl = pe.Personaje.ImagenUrl
+                })
+                .ToListAsync();
+
+            return participantes;
+        }
     }
 }
