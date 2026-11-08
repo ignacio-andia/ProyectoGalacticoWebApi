@@ -86,5 +86,18 @@ namespace ProyectoGalacticoWebApi.Controllers
             return NoContent();
         }
 
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> EliminarCard(int id)
+        {
+            var resultado = await _cardsService.EliminarCardAsync(id);
+
+            if (resultado.Tipo != TipoResultado.Success)
+            {
+                return ManejarResultado(resultado);
+            }
+            return NoContent();
+        }
+
+
     }
 }
