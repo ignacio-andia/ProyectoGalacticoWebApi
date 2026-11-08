@@ -198,7 +198,7 @@ namespace ProyectoGalacticoWebApi.Services
                 return null;
             }
 
-            var eventos = await _context.ParticipaEventos.AsNoTracking().Where(e => e.IdPersonaje == personajeId).Include(e => e.Evento).Select(e => new EventoDto
+            var eventos = await _context.ParticipaEventos.AsNoTracking().Where(e => e.IdPersonaje == personajeId).Select(e => new EventoDto
             {
                 Id = e.Evento.Id,
                 Nombre = e.Evento.Nombre,
