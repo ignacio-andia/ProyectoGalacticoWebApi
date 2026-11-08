@@ -73,5 +73,19 @@ namespace ProyectoGalacticoWebApi.Controllers
 
             return NoContent();
         }
+
+
+        [HttpPost("{eventoId:int}/participante/{personajeId:int}")]
+        public async Task<IActionResult> AgregarParticipante(int eventoId, int personajeId)
+        {
+            var resultado = await _eventoService.AgregarParticipanteAsync(eventoId, personajeId);
+
+            if (resultado.Tipo != TipoResultado.Success)
+            {
+                return ManejarResultado(resultado);
+            }
+
+            return NoContent();
+        }
     }
 }
