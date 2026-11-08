@@ -15,5 +15,34 @@ namespace ProyectoGalacticoWebApi.Controllers
         {
             _eventoService = eventoService;
         }
+        private IActionResult ManejarResultado<T>(ResultadoOperacion<T> resultado)
+        {
+            return resultado.Tipo switch
+            {
+                TipoResultado.NotFound => NotFound(resultado.Mensaje),
+                TipoResultado.Conflict => Conflict(resultado.Mensaje),
+                TipoResultado.BadRequest => BadRequest(resultado.Mensaje),
+                _ => Ok(resultado.Datos)
+            };
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ListarEventos()
+        {
+            var eventos = await _eventoService.ListarEventosAsync();
+            return Ok(eventos);
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> ObtenerEventoPorId(int id)
+        {
+            var evento = await _eventoService.ObtenerEventoPorIdAsync(id);
+            if (evento == null)
+            {
+                return NotFound();
+            }
+            return Ok(evento);
+        }
+
     }
 }
