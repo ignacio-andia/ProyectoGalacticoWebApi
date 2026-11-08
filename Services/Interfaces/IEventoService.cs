@@ -24,6 +24,6 @@ namespace ProyectoGalacticoWebApi.Services.Interfaces
 
 
         // Simulacion
-        //Task<ResultadoOperacion<SimulacionEventoDto>> SimularEventoAsync(int eventoId);
+        Task<ResultadoOperacion<SimulacionEventoDto>> SimularEventoAsync(int eventoId);
     }
 }

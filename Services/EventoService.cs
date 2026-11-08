@@ -30,6 +30,12 @@ namespace ProyectoGalacticoWebApi.Services
             });
         }
 
+
+        private double GenerarFactorAleatorio()
+        {
+            return Random.Shared.NextDouble() * (1.10 - 0.90) + 0.90;
+        }
+
         public async Task<EventoDto?> ObtenerEventoPorIdAsync(int id)
         {
             var evento = await _context.Eventos.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
@@ -221,7 +227,7 @@ namespace ProyectoGalacticoWebApi.Services
                 return null;
             }
 
-            var participanteMvp = await _context.ParticipaEventos.AsNoTracking().Where(pe => pe.IdEvento == eventoId &&pe.Personaje.Estado == EstadoPersonaje.Vivo).Include(pe => pe.Personaje).ThenInclude(p => p.CardsPersonaje).OrderByDescending(pe => pe.Personaje.CardsPersonaje.Poder).FirstOrDefaultAsync();
+            var participanteMvp = await _context.ParticipaEventos.AsNoTracking().Where(pe => pe.IdEvento == eventoId && pe.Personaje.Estado == EstadoPersonaje.Vivo && pe.Personaje.Faccion != Faccion.Neutral).Include(pe => pe.Personaje).ThenInclude(p => p.CardsPersonaje).OrderByDescending(pe => pe.Personaje.CardsPersonaje.Poder).FirstOrDefaultAsync();
             if (participanteMvp is null)
             {
                 return null;
@@ -238,6 +244,106 @@ namespace ProyectoGalacticoWebApi.Services
                 FuerzaSensitiva = participanteMvp.Personaje.FuerzaSensitiva,
                 ImagenUrl = participanteMvp.Personaje.ImagenUrl
             };
+        }
+
+        public async Task<ResultadoOperacion<SimulacionEventoDto>> SimularEventoAsync(int eventoId)
+        {
+            //verificar si exite y el evento no fue simulado antes
+            var evento = await _context.Eventos.FirstOrDefaultAsync(e => e.Id == eventoId );
+            if (evento is null){
+                return ResultadoOperacion<SimulacionEventoDto>.Error(TipoResultado.NotFound, "No exixste Este Evento");
+            }
+            if(evento.Resultado is not null)
+            {
+                return ResultadoOperacion<SimulacionEventoDto>.Error(TipoResultado.Conflict, "Este evento ya Fue simulado");
+            }
+
+
+            //validar Participantes (minimo unuo de cada faccion)
+            var participantes = await _context.ParticipaEventos.Where(pe => pe.IdEvento == eventoId && pe.Personaje.Estado == EstadoPersonaje.Vivo).Include(pe => pe.Personaje).ThenInclude(p => p.CardsPersonaje).ToListAsync();
+
+            var hayRebeldes = participantes.Any(p => p.Personaje.Faccion == Faccion.Rebelde); 
+            var hayImperiales = participantes.Any(p => p.Personaje.Faccion == Faccion.Imperio); 
+
+            if(!hayImperiales || !hayRebeldes)
+            {
+                return ResultadoOperacion<SimulacionEventoDto>.Error(TipoResultado.BadRequest, "el Eventod ebe de tener un participante Rebelde y uno imperial Minimamte");
+            }
+
+            //verificar si tiene cards
+            var faltaCard = participantes.Any(p => p.Personaje.CardsPersonaje is null);
+            if (faltaCard)
+            {
+                return ResultadoOperacion<SimulacionEventoDto>.Error(
+                    TipoResultado.BadRequest,
+                    "Todos los participantes deben tener una Card para simular el evento.");
+            }
+
+
+            // sumar Fuerzas
+            var fuerzaRebeldes = participantes.Where(p => p.Personaje.Faccion == Faccion.Rebelde).Sum(p => p.Personaje.CardsPersonaje.Poder);
+            var fuerzaImperio = participantes.Where(p => p.Personaje.Faccion == Faccion.Imperio).Sum(p => p.Personaje.CardsPersonaje.Poder);
+
+            //Factor para cada faccion
+            double factorRebelde = GenerarFactorAleatorio();
+            double factorImperio = GenerarFactorAleatorio();
+
+            //Calcular Fuerza final
+            double poderFinalRebelde = fuerzaRebeldes * factorRebelde;
+            double poderFinalImperio = fuerzaImperio * factorImperio;
+
+
+            //verificar ganador
+            Faccion ganador;
+
+            if (poderFinalRebelde > poderFinalImperio)
+            {
+                ganador = Faccion.Rebelde;
+            }
+            else if (poderFinalImperio > poderFinalRebelde)
+            {
+                ganador = Faccion.Imperio;
+            }
+            else
+            {// en caso de que deuqen empatos 
+                ganador = Random.Shared.Next(2) == 0 ? Faccion.Rebelde: Faccion.Imperio;
+            }
+
+
+            //Marcar Como mueetos a Perdedores
+            foreach (var participante in participantes)
+            {
+                if(participante.Personaje.Faccion != ganador && participante.Personaje.Faccion != Faccion.Neutral)
+                {
+                    participante.Personaje.Estado = EstadoPersonaje.Muerto;
+                }
+            }
+
+            //Guaradr Datos en Bdd
+            evento.Resultado = $"Victoria de {ganador}";
+
+            await _context.SaveChangesAsync();
+
+            //MostrarDatos
+            var respuesta = new SimulacionEventoDto
+            {
+                EventoId = evento.Id,
+                NombreEvento = evento.Nombre,
+
+                FuerzaBaseRebeldes = fuerzaRebeldes,
+                FuerzaBaseImperio = fuerzaImperio,
+
+                FactorRebelde = factorRebelde,
+                FactorImperio = factorImperio,
+
+                FuerzaFinalRebeldes = poderFinalRebelde,
+                FuerzaFinalImperio = poderFinalImperio,
+
+                Resultado = evento.Resultado,
+                Criterio = "Gana la facción con mayor fuerza final después de aplicar un factor aleatorio independiente entre 0.90 y 1.10. Los participantes de la facción perdedora mueren; los neutrales no participan en el combate."
+            };
+            return ResultadoOperacion<SimulacionEventoDto>.Exito(respuesta);
+
         }
 
     }
