@@ -212,5 +212,33 @@ namespace ProyectoGalacticoWebApi.Services
             return eventos;
         }
 
+        public async Task<PersonajeDto?> ObtenerMVPAsync(int eventoId)
+        {
+            var evento = await _context.Eventos.AsNoTracking().FirstOrDefaultAsync(e => e.Id == eventoId);
+
+            if (evento is null || evento.Resultado is null)
+            {
+                return null;
+            }
+
+            var participanteMvp = await _context.ParticipaEventos.AsNoTracking().Where(pe => pe.IdEvento == eventoId &&pe.Personaje.Estado == EstadoPersonaje.Vivo).Include(pe => pe.Personaje).ThenInclude(p => p.CardsPersonaje).OrderByDescending(pe => pe.Personaje.CardsPersonaje.Poder).FirstOrDefaultAsync();
+            if (participanteMvp is null)
+            {
+                return null;
+            }
+
+            return new PersonajeDto
+            {
+                Id = participanteMvp.Personaje.Id,
+                Nombre = participanteMvp.Personaje.Nombre,
+                Especie = participanteMvp.Personaje.Especie,
+                Faccion = participanteMvp.Personaje.Faccion.ToString(),
+                Afiliacion = participanteMvp.Personaje.Afiliacion,
+                Estado = participanteMvp.Personaje.Estado.ToString(),
+                FuerzaSensitiva = participanteMvp.Personaje.FuerzaSensitiva,
+                ImagenUrl = participanteMvp.Personaje.ImagenUrl
+            };
+        }
+
     }
 }
