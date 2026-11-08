@@ -44,5 +44,20 @@ namespace ProyectoGalacticoWebApi.Controllers
             return Ok(evento);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> CrearEvento(CrearEventoDto dto)
+        {
+            var resultado = await _eventoService.CrearEventoAsync(dto);
+
+            if (resultado.Tipo != TipoResultado.Success)
+            {
+                return ManejarResultado(resultado);
+            }
+
+            return CreatedAtAction(
+                nameof(ObtenerEventoPorId),
+                new { id = resultado.Datos!.Id },
+                resultado.Datos);
+        }
     }
 }
