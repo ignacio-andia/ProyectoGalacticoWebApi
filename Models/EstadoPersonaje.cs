@@ -4,6 +4,7 @@
     {
         Vivo,
         Muerto,
-        Descoonocido
+        Desconocido,
+        Herido
     }
 }
