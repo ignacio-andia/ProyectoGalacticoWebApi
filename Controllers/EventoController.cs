@@ -129,5 +129,33 @@ namespace ProyectoGalacticoWebApi.Controllers
             return Ok(eventos);
         }
 
+
+        [HttpGet("{eventoId:int}/mvp")]
+        public async Task<IActionResult> ObtenerMVP(int eventoId)
+        {
+            var mvp = await _eventoService.ObtenerMVPAsync(eventoId);
+
+            if (mvp == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(mvp);
+        }
+
+
+        [HttpPost("{eventoId:int}/simular")]
+        public async Task<IActionResult> SimularEvento(int eventoId)
+        {
+            var resultado = await _eventoService.SimularEventoAsync(eventoId);
+
+            if (resultado.Tipo != TipoResultado.Success)
+            {
+                return ManejarResultado(resultado);
+            }
+
+            return Ok(resultado.Datos);
+        }
+
     }
 }
