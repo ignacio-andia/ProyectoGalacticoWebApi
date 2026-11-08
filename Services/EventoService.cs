@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProyectoGalacticoWebApi.Data;
 using ProyectoGalacticoWebApi.Dtos;
-using ProyectoGalacticoWebApi.Results;
 using ProyectoGalacticoWebApi.Models;
+using ProyectoGalacticoWebApi.Results;
 using ProyectoGalacticoWebApi.Services.Interfaces;
+using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
 namespace ProyectoGalacticoWebApi.Services
 {
@@ -189,5 +190,27 @@ namespace ProyectoGalacticoWebApi.Services
 
             return participantes;
         }
+
+        public async Task<IEnumerable<EventoDto>?> ObtenerEventosPorPersonajeAsync(int personajeId)
+        {
+            var existePersonaje = await _context.Personajes.AsNoTracking().AnyAsync(p => p.Id == personajeId);
+            if (!existePersonaje)
+            {
+                return null;
+            }
+
+            var eventos = await _context.ParticipaEventos.AsNoTracking().Where(e => e.IdPersonaje == personajeId).Include(e => e.Evento).Select(e => new EventoDto
+            {
+                Id = e.Evento.Id,
+                Nombre = e.Evento.Nombre,
+                Fecha = e.Evento.Fecha,
+                Ubicacion = e.Evento.Ubicacion,
+                Descripcion = e.Evento.Descripcion,
+                Resultado = e.Evento.Resultado
+            }).ToListAsync();
+
+            return eventos;
+        }
+
     }
 }

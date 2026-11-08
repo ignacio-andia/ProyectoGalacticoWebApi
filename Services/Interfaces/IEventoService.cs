@@ -19,7 +19,7 @@ namespace ProyectoGalacticoWebApi.Services.Interfaces
 
 
         // Consultas
-        //Task<IEnumerable<EventoDto>?> ObtenerEventosPorPersonajeAsync(int personajeId);
+        Task<IEnumerable<EventoDto>?> ObtenerEventosPorPersonajeAsync(int personajeId);
         //Task<PersonajeDto?> ObtenerMVPAsync(int eventoId);
 
 
