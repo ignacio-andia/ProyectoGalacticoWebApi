@@ -101,5 +101,20 @@ namespace ProyectoGalacticoWebApi.Controllers
 
             return NoContent();
         }
+
+
+        [HttpGet("{eventoId:int}/participantes")]
+        public async Task<IActionResult> ListarParticipantes(int eventoId)
+        {
+            var participantes = await _eventoService.ListarParticipantesAsync(eventoId);
+
+            if (participantes == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(participantes);
+        }
+
     }
 }
