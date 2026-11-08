@@ -18,6 +18,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddControllers();
 builder.Services.AddScoped<IPersonajeService, PersonajeService>();
 builder.Services.AddScoped<ICardsPersonajeService, CardsPersonajeService>();
+builder.Services.AddScoped<IEventoService, EventoService>();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
