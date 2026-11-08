@@ -114,5 +114,20 @@ namespace ProyectoGalacticoWebApi.Services
             return true;
         }
 
+        public async Task<bool> CambiarEstadoAsync(int id, CambiarEstadoPersonajeDto dto)
+        {
+            var personaje = await _context.Personajes.FirstOrDefaultAsync(p => p.Id == id);
+            if (personaje is null)
+            {
+                return false;
+            }
+
+            personaje.Estado = dto.Estado;
+
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
     }
 }

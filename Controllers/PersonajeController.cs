@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProyectoGalacticoWebApi.Dtos;
 using ProyectoGalacticoWebApi.Services.Interfaces;
+using ProyectoGalacticoWebApi.Results;
 namespace ProyectoGalacticoWebApi.Controllers
 {
     [ApiController]
@@ -58,6 +59,19 @@ namespace ProyectoGalacticoWebApi.Controllers
             {
                 return NotFound();
             }
+            return NoContent();
+        }
+
+
+        [HttpPatch("{id:int}/estado")]
+        public async Task<IActionResult> CambiarEstado(int id, CambiarEstadoPersonajeDto dto)
+        {
+            var resultado = await _personajeService.CambiarEstadoAsync(id, dto);
+            if (!resultado)
+            {
+                return NotFound();
+            }
+
             return NoContent();
         }
 

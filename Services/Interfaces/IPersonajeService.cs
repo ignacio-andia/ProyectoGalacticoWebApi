@@ -8,6 +8,7 @@ namespace ProyectoGalacticoWebApi.Services.Interfaces
         Task<PersonajeDto> CrearPersonajeAsync(CrearPersonajeDto Dto);
         Task<bool> ActualizarPersonajeAsync(int Id, ActualizarPersonajeDto Dto);
         Task<bool> EliminarPersonajeAsync(int Id);
+        Task<bool> CambiarEstadoAsync(int id, CambiarEstadoPersonajeDto dto);
 
 
     }

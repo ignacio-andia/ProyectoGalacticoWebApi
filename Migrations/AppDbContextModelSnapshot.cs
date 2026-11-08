@@ -78,7 +78,6 @@ namespace ProyectoGalacticoWebApi.Migrations
                         .HasColumnType("varchar(150)");
 
                     b.Property<string>("Resultado")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
 
