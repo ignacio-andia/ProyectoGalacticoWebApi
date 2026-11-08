@@ -91,6 +91,49 @@ namespace ProyectoGalacticoWebApi.Migrations
                     b.ToTable("Eventos");
                 });
 
+            modelBuilder.Entity("ProyectoGalacticoWebApi.Models.Mision", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NivelDeDificultad")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("PoderMinimo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Recompensa")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Resultado")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Misiones");
+                });
+
             modelBuilder.Entity("ProyectoGalacticoWebApi.Models.ParticipaEvento", b =>
                 {
                     b.Property<int>("IdPersonaje")
@@ -104,6 +147,21 @@ namespace ProyectoGalacticoWebApi.Migrations
                     b.HasIndex("IdEvento");
 
                     b.ToTable("ParticipaEventos");
+                });
+
+            modelBuilder.Entity("ProyectoGalacticoWebApi.Models.ParticipaMision", b =>
+                {
+                    b.Property<int>("IdPersonaje")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdMision")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdPersonaje", "IdMision");
+
+                    b.HasIndex("IdMision");
+
+                    b.ToTable("ParticipaMisiones");
                 });
 
             modelBuilder.Entity("ProyectoGalacticoWebApi.Models.Personaje", b =>
@@ -135,6 +193,11 @@ namespace ProyectoGalacticoWebApi.Migrations
 
                     b.Property<string>("ImagenUrl")
                         .HasColumnType("longtext");
+
+                    b.Property<int>("Monedas")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -176,7 +239,31 @@ namespace ProyectoGalacticoWebApi.Migrations
                     b.Navigation("Personaje");
                 });
 
+            modelBuilder.Entity("ProyectoGalacticoWebApi.Models.ParticipaMision", b =>
+                {
+                    b.HasOne("ProyectoGalacticoWebApi.Models.Mision", "Mision")
+                        .WithMany("Participantes")
+                        .HasForeignKey("IdMision")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProyectoGalacticoWebApi.Models.Personaje", "Personaje")
+                        .WithMany("Misiones")
+                        .HasForeignKey("IdPersonaje")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Mision");
+
+                    b.Navigation("Personaje");
+                });
+
             modelBuilder.Entity("ProyectoGalacticoWebApi.Models.Evento", b =>
+                {
+                    b.Navigation("Participantes");
+                });
+
+            modelBuilder.Entity("ProyectoGalacticoWebApi.Models.Mision", b =>
                 {
                     b.Navigation("Participantes");
                 });
@@ -187,6 +274,8 @@ namespace ProyectoGalacticoWebApi.Migrations
                         .IsRequired();
 
                     b.Navigation("Eventos");
+
+                    b.Navigation("Misiones");
                 });
 #pragma warning restore 612, 618
         }

@@ -11,5 +11,6 @@ namespace ProyectoGalacticoWebApi.Dtos
         public string? Estado { get; set; }
         public bool FuerzaSensitiva { get; set; }
         public string? ImagenUrl { get; set; } = string.Empty;
+        public int Monedas { get; set; }
     }
 }

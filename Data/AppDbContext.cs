@@ -14,9 +14,11 @@ namespace ProyectoGalacticoWebApi.Data
         public DbSet<Personaje> Personajes => Set<Personaje>();
         public DbSet<CardsPersonaje> CardsPersonajes => Set<CardsPersonaje>();
         public DbSet<Evento> Eventos => Set<Evento>();
+        public DbSet<Mision> Misiones => Set<Mision>();
 
-        // Tabla intermedia
+        // Tablas intermedias
         public DbSet<ParticipaEvento> ParticipaEventos => Set<ParticipaEvento>();
+        public DbSet<ParticipaMision> ParticipaMisiones => Set<ParticipaMision>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -59,6 +61,10 @@ namespace ProyectoGalacticoWebApi.Data
                 e.Property(p => p.Afiliacion)
                     .IsRequired()
                     .HasMaxLength(100);
+
+                e.Property(p => p.Monedas)
+                    .IsRequired()
+                    .HasDefaultValue(0);
             });
 
             // Configuración de CardsPersonaje
@@ -98,6 +104,46 @@ namespace ProyectoGalacticoWebApi.Data
                     .IsRequired(false)
                     .HasMaxLength(200);
             });
+
+
+            // Relación N:N entre Personaje y Mision
+            modelBuilder.Entity<ParticipaMision>()
+                .HasKey(pm => new { pm.IdPersonaje, pm.IdMision });
+
+            modelBuilder.Entity<ParticipaMision>()
+                .HasOne(pm => pm.Personaje)
+                .WithMany(p => p.Misiones)
+                .HasForeignKey(pm => pm.IdPersonaje);
+
+            modelBuilder.Entity<ParticipaMision>()
+                .HasOne(pm => pm.Mision)
+                .WithMany(m => m.Participantes)
+                .HasForeignKey(pm => pm.IdMision);
+
+
+            // Configuración de Mision
+            modelBuilder.Entity<Mision>(e =>
+            {
+                e.Property(m => m.Nombre)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                e.Property(m => m.Tipo)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                e.Property(m => m.NivelDeDificultad).IsRequired();
+
+                e.Property(m => m.Descripcion)
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                e.Property(m => m.PoderMinimo).IsRequired();
+                e.Property(m => m.Recompensa).IsRequired();
+                e.Property(m => m.Estado).IsRequired();
+                e.Property(m => m.Resultado).IsRequired(false);
+            });
+
         }
     }
 }
