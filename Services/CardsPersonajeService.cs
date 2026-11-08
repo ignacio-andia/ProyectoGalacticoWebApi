@@ -2,6 +2,7 @@
 using ProyectoGalacticoWebApi.Dtos;
 using ProyectoGalacticoWebApi.Data;
 using ProyectoGalacticoWebApi.Models;
+using ProyectoGalacticoWebApi.Results;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 
@@ -70,18 +71,20 @@ namespace ProyectoGalacticoWebApi.Services
 
         }
 
-        public async Task<CardsPersonajeDto> CrearCardAsync(CrearCardsPersonajeDto dto)
+        public async Task<ResultadoOperacion<CardsPersonajeDto>> CrearCardAsync(CrearCardsPersonajeDto dto)
         {
-
             bool personajeExiste = await _context.Personajes.AnyAsync(p => p.Id == dto.PersonajeId);
+
             if (!personajeExiste)
             {
-                throw new KeyNotFoundException("El personaje indicado no existe.");
+                return ResultadoOperacion<CardsPersonajeDto>.Error(TipoResultado.NotFound,"El personaje indicado no existe.");
             }
+
             bool yaTieneCard = await _context.CardsPersonajes.AnyAsync(c => c.PersonajeId == dto.PersonajeId);
+
             if (yaTieneCard)
             {
-                throw new InvalidOperationException("El personaje ya tiene una Card asignada.");
+                return ResultadoOperacion<CardsPersonajeDto>.Error(TipoResultado.Conflict,"El personaje ya tiene una Card asignada.");
             }
 
             var card = new CardsPersonaje
@@ -96,7 +99,7 @@ namespace ProyectoGalacticoWebApi.Services
             _context.CardsPersonajes.Add(card);
             await _context.SaveChangesAsync();
 
-            return new CardsPersonajeDto
+            var cardDto = new CardsPersonajeDto
             {
                 Id = card.Id,
                 Poder = card.Poder,
@@ -105,26 +108,32 @@ namespace ProyectoGalacticoWebApi.Services
                 NivelDePeligrosidad = card.NivelDePeligrosidad,
                 PersonajeId = card.PersonajeId
             };
+
+            return ResultadoOperacion<CardsPersonajeDto>.Exito(cardDto);
         }
 
-        public async Task<bool> ActualizarCardAsync(int id, ActualizarCardsPersonajeDto dto)
+
+        public async Task<ResultadoOperacion<bool>> ActualizarCardAsync(int id, ActualizarCardsPersonajeDto dto)
         {
             var card = await _context.CardsPersonajes.FirstOrDefaultAsync(c => c.Id == id);
-            if(card == null)
+
+            if (card == null)
             {
-                return false;
+                return ResultadoOperacion<bool>.Error(TipoResultado.NotFound,"La Card indicada no existe.");
             }
 
             bool personajeExiste = await _context.Personajes.AnyAsync(p => p.Id == dto.PersonajeId);
+
             if (!personajeExiste)
             {
-                throw new KeyNotFoundException("El personaje indicado no existe.");
+                return ResultadoOperacion<bool>.Error( TipoResultado.NotFound,"El personaje indicado no existe.");
             }
 
             bool yaTieneCard = await _context.CardsPersonajes.AnyAsync(c => c.PersonajeId == dto.PersonajeId && c.Id != id);
+
             if (yaTieneCard)
             {
-                throw new InvalidOperationException("El personaje ya tiene una Card asignada.");
+                return ResultadoOperacion<bool>.Error(TipoResultado.Conflict,"El personaje ya tiene otra Card asignada.");
             }
 
             card.Poder = dto.Poder;
@@ -135,20 +144,22 @@ namespace ProyectoGalacticoWebApi.Services
 
             await _context.SaveChangesAsync();
 
-            return true;
-
+            return ResultadoOperacion<bool>.Exito(true);
         }
 
-        public async Task<bool> EliminarCardAsync(int id)
+
+        public async Task<ResultadoOperacion<bool>> EliminarCardAsync(int id)
         {
             var card = await _context.CardsPersonajes.FirstOrDefaultAsync(c => c.Id == id);
-            if (card is null)
+
+            if (card == null)
             {
-                return false;
+                return ResultadoOperacion<bool>.Error( TipoResultado.NotFound,"La Card indicada no existe.");
             }
+
             _context.CardsPersonajes.Remove(card);
             await _context.SaveChangesAsync();
-            return true;
+            return ResultadoOperacion<bool>.Exito(true); // esta cosa es recomedacion de chat GPT, la verdad, pense que esataba avanzondo bien, hasta que le muestro y me dice "manejar de esta froma las exepciones puede provocar errore" >:V (Dios!!!... se que es bunea recomendacion, pero, como hiba a saber? 'V)
         }
 
     }
