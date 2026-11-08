@@ -14,7 +14,7 @@ namespace ProyectoGalacticoWebApi.Services.Interfaces
 
         // Gestion de participantes
         Task<ResultadoOperacion<bool>> AgregarParticipanteAsync(int eventoId, int personajeId);
-        //Task<ResultadoOperacion<bool>> QuitarParticipanteAsync(int eventoId, int personajeId);
+        Task<ResultadoOperacion<bool>> QuitarParticipanteAsync(int eventoId, int personajeId);
         //Task<IEnumerable<PersonajeDto>?> ListarParticipantesAsync(int eventoId);
 
 

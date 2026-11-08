@@ -115,8 +115,7 @@ namespace ProyectoGalacticoWebApi.Services
             if (personaje is null)
             {
                 return ResultadoOperacion<bool>.Error(
-                    TipoResultado.NotFound,
-                    "El personaje indicado no existe.");
+                    TipoResultado.NotFound,"El personaje indicado no existe.");
             }
             if (personaje.Estado == EstadoPersonaje.Muerto)
             {
@@ -139,6 +138,31 @@ namespace ProyectoGalacticoWebApi.Services
             _context.ParticipaEventos.Add(Participacion);
             await _context.SaveChangesAsync();
 
+            return ResultadoOperacion<bool>.Exito(true);
+        }
+
+        public async Task<ResultadoOperacion<bool>> QuitarParticipanteAsync(int eventoId, int personajeId)
+        {
+            var ExistePersonaje = await _context.Personajes.AsNoTracking().AnyAsync(p => p.Id == personajeId);
+            if (!ExistePersonaje)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.NotFound, "El Personaje No Existe");
+            }
+
+            var ExisteEvento = await _context.Eventos.AsNoTracking().AnyAsync(e => e.Id == eventoId);
+            if (!ExisteEvento)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.NotFound, "Noexiste Evento");
+            }
+
+            var Relacion = await _context.ParticipaEventos.FirstOrDefaultAsync(y => y.IdPersonaje == personajeId && y.IdEvento == eventoId);
+            if (Relacion is null)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.NotFound, "No existe Esta Relacion");
+            }
+
+            _context.ParticipaEventos.Remove(Relacion);
+            await _context.SaveChangesAsync();
             return ResultadoOperacion<bool>.Exito(true);
         }
     }
