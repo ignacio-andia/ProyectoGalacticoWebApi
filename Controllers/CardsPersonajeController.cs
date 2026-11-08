@@ -9,6 +9,17 @@ namespace ProyectoGalacticoWebApi.Controllers
     [Route("api/[controller]")]
     public class CardsPersonajeController : ControllerBase
     {
+        private IActionResult ManejarResultado<T>(ResultadoOperacion<T> resultado)
+        {
+            return resultado.Tipo switch
+            {
+                TipoResultado.NotFound => NotFound(resultado.Mensaje),
+                TipoResultado.Conflict => Conflict(resultado.Mensaje),
+                TipoResultado.BadRequest => BadRequest(resultado.Mensaje),
+                _ => Ok(resultado.Datos)
+            };
+        }
+
         private readonly ICardsPersonajeService _cardsService;
 
         public CardsPersonajeController(ICardsPersonajeService cardsService)
@@ -44,6 +55,22 @@ namespace ProyectoGalacticoWebApi.Controllers
                 return NotFound();
             }
             return Ok(card);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CrearCard(CrearCardsPersonajeDto dto)
+        {
+            var resultado = await _cardsService.CrearCardAsync(dto);
+
+            if (resultado.Tipo != TipoResultado.Success)
+            {
+                return ManejarResultado(resultado);
+            }
+
+            return CreatedAtAction(
+                nameof(ObtenerCardPorId),
+                new { id = resultado.Datos!.Id },
+                resultado.Datos);
         }
 
     }
