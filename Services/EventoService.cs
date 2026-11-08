@@ -4,6 +4,7 @@ using ProyectoGalacticoWebApi.Dtos;
 using ProyectoGalacticoWebApi.Results;
 using ProyectoGalacticoWebApi.Models;
 using ProyectoGalacticoWebApi.Services.Interfaces;
+using System.Security.Cryptography.X509Certificates;
 namespace ProyectoGalacticoWebApi.Services
 {
     public class EventoService : IEventoService
@@ -88,6 +89,57 @@ namespace ProyectoGalacticoWebApi.Services
             return ResultadoOperacion<bool>.Exito(true);
 
 
+        }
+
+        public async Task<ResultadoOperacion<bool>> AgregarParticipanteAsync(int eventoId, int personajeId)
+        {
+            var ExistePersonaje = await _context.Personajes.AsNoTracking().AnyAsync(p => p.Id == personajeId);
+            if (!ExistePersonaje)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.NotFound, "El Personaje No Existe");
+            }
+
+            var tieneCard = await _context.CardsPersonajes.AsNoTracking().AnyAsync(c => c.PersonajeId == personajeId);
+            if (!tieneCard)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.BadRequest, "El personaje No tiene Card");
+            }
+
+            var ExisteEvento = await _context.Eventos.AsNoTracking().AnyAsync(e => e.Id == eventoId);
+            if (!ExisteEvento)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.NotFound, "Noexiste Evento");
+            }
+
+            var personaje = await _context.Personajes.AsNoTracking().FirstOrDefaultAsync(pe => pe.Id == personajeId);
+            if (personaje is null)
+            {
+                return ResultadoOperacion<bool>.Error(
+                    TipoResultado.NotFound,
+                    "El personaje indicado no existe.");
+            }
+            if (personaje.Estado == EstadoPersonaje.Muerto)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.BadRequest, "El personaje esta Muerto");
+            }
+
+            var YaParticipa = await _context.ParticipaEventos.AsNoTracking().AnyAsync(y => y.IdPersonaje == personajeId && y.IdEvento == eventoId);
+            if (YaParticipa)
+            {
+                return ResultadoOperacion<bool>.Error(TipoResultado.Conflict, "El personaja ya Participa en el Evento");
+
+            }
+
+            var Participacion = new ParticipaEvento
+            {
+                IdPersonaje = personajeId,
+                IdEvento = eventoId
+            };
+
+            _context.ParticipaEventos.Add(Participacion);
+            await _context.SaveChangesAsync();
+
+            return ResultadoOperacion<bool>.Exito(true);
         }
     }
 }
