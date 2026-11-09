@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProyectoGalacticoWebApi.Data;
+using ProyectoGalacticoWebApi.Models;
 using ProyectoGalacticoWebApi.Services;
 using ProyectoGalacticoWebApi.Services.Interfaces;
 
@@ -20,6 +22,8 @@ builder.Services.AddScoped<IPersonajeService, PersonajeService>();
 builder.Services.AddScoped<ICardsPersonajeService, CardsPersonajeService>();
 builder.Services.AddScoped<IEventoService, EventoService>();
 builder.Services.AddScoped<IMisionService, MisionService>();
+builder.Services.AddScoped<IPasswordHasher<CredencialPersonaje>, PasswordHasher<CredencialPersonaje>>();
+builder.Services.AddScoped<ICredencialService, CredencialService>();
 
 builder.Services.AddSingleton<ICifradoService, CifradoService>();
 
