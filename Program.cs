@@ -19,6 +19,7 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IPersonajeService, PersonajeService>();
 builder.Services.AddScoped<ICardsPersonajeService, CardsPersonajeService>();
 builder.Services.AddScoped<IEventoService, EventoService>();
+builder.Services.AddScoped<IMisionService, MisionService>();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
