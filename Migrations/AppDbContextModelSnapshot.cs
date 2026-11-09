@@ -56,6 +56,33 @@ namespace ProyectoGalacticoWebApi.Migrations
                     b.ToTable("CardsPersonajes");
                 });
 
+            modelBuilder.Entity("ProyectoGalacticoWebApi.Models.CredencialPersonaje", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CanalDeComunicacion")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("CodigoAccesoHash")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("PersonajeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonajeId")
+                        .IsUnique();
+
+                    b.ToTable("CredencialesPersonajes");
+                });
+
             modelBuilder.Entity("ProyectoGalacticoWebApi.Models.Evento", b =>
                 {
                     b.Property<int>("Id")
@@ -220,6 +247,17 @@ namespace ProyectoGalacticoWebApi.Migrations
                     b.Navigation("Personaje");
                 });
 
+            modelBuilder.Entity("ProyectoGalacticoWebApi.Models.CredencialPersonaje", b =>
+                {
+                    b.HasOne("ProyectoGalacticoWebApi.Models.Personaje", "Personaje")
+                        .WithOne("CredencialPersonaje")
+                        .HasForeignKey("ProyectoGalacticoWebApi.Models.CredencialPersonaje", "PersonajeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Personaje");
+                });
+
             modelBuilder.Entity("ProyectoGalacticoWebApi.Models.ParticipaEvento", b =>
                 {
                     b.HasOne("ProyectoGalacticoWebApi.Models.Evento", "Evento")
@@ -272,6 +310,8 @@ namespace ProyectoGalacticoWebApi.Migrations
                 {
                     b.Navigation("CardsPersonaje")
                         .IsRequired();
+
+                    b.Navigation("CredencialPersonaje");
 
                     b.Navigation("Eventos");
 
