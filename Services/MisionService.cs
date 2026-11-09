@@ -4,6 +4,7 @@ using ProyectoGalacticoWebApi.Dtos;
 using ProyectoGalacticoWebApi.Models;
 using ProyectoGalacticoWebApi.Results;
 using ProyectoGalacticoWebApi.Services.Interfaces;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ProyectoGalacticoWebApi.Services
 {
@@ -124,6 +125,133 @@ namespace ProyectoGalacticoWebApi.Services
             await _context.SaveChangesAsync();
 
             return ResultadoOperacion<bool>.Exito(true);
+        }
+
+
+        public async Task<ResultadoOperacion<EjecucionMisionDto>> IniciarMisionAsync(int misionId)
+        {
+            //ver si mision existe y esta disponible
+            var mision = await _context.Misiones.FirstOrDefaultAsync(m => m.Id == misionId);
+            if (mision is null)
+            {
+                return ResultadoOperacion<EjecucionMisionDto>.Error(TipoResultado.NotFound, "La misión no existe");
+            }
+            if (mision.Estado != EstadoMision.Disponible)
+            {
+                return ResultadoOperacion<EjecucionMisionDto>.Error(TipoResultado.Conflict, "La misión ya fue ejecutada o no está disponible");
+            }
+
+            //ver si hay participantes en la mision
+            var participantes = await _context.ParticipaMisiones.Where(pm => pm.IdMision == misionId).Include(pm => pm.Personaje).ThenInclude(p => p.CardsPersonaje).ToListAsync();
+            if (!participantes.Any())
+            {
+                return ResultadoOperacion<EjecucionMisionDto>.Error(TipoResultado.BadRequest, "La misión no tiene participantes");
+            }
+
+            //verificar que todos los participantes tengan Card
+            if (participantes.Any(p => p.Personaje.CardsPersonaje is null))
+            {
+                return ResultadoOperacion<EjecucionMisionDto>.Error(TipoResultado.BadRequest, "Uno o más participantes no tienen Card");
+            }
+
+            //validar si cumplen con el poder minimo
+            var poderTotal = participantes.Sum(p => p.Personaje.CardsPersonaje.Poder);
+            if (poderTotal < mision.PoderMinimo)
+            {
+                return ResultadoOperacion<EjecucionMisionDto>.Error(TipoResultado.BadRequest, "El poder total de los participantes no alcanza el mínimo requerido para esta misión");
+            }
+
+            //calculos de probabilidad de exito
+            double probabilidadExito = 50 + (((double)(poderTotal - mision.PoderMinimo) / mision.PoderMinimo) * 20) - (mision.NivelDeDificultad * 5);
+            probabilidadExito = Math.Clamp(probabilidadExito, 5, 95);
+
+            bool misionExitosa = Random.Shared.NextDouble() * 100 < probabilidadExito;
+            var resultado = misionExitosa ? ResultadoMision.Exitosa : ResultadoMision.Fallida;
+
+            //inicio de transaccion
+            await using var transaccion = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                //segun el resultado los personajes o quedan vivos, heridos o muertos
+                foreach (var participante in participantes)
+                {
+                    if (!misionExitosa)
+                    {
+                        participante.Personaje.Estado = EstadoPersonaje.Muerto;
+                    }
+                    else
+                    {
+                        int probabilidad = Random.Shared.Next(1, 101);
+
+                        participante.Personaje.Estado = probabilidad <= 70
+                            ? EstadoPersonaje.Vivo
+                            : EstadoPersonaje.Herido;
+                    }
+                }
+
+                //distribuir recompensa si la mision es completada exitosamente
+                var participantesVivos = participantes.Where(p => p.Personaje.Estado == EstadoPersonaje.Vivo || p.Personaje.Estado == EstadoPersonaje.Herido).ToList();
+                int recompensaDistribuida = 0;
+
+                var monedasPorParticipante = new Dictionary<int, int>();
+
+                if (misionExitosa)
+                {
+                    int recompensaIndividual = mision.Recompensa / participantesVivos.Count;
+                    int sobrante = mision.Recompensa % participantesVivos.Count;
+
+                    for (int i = 0; i < participantesVivos.Count; i++)
+                    {
+                        int monedasRecibidas = recompensaIndividual;
+
+                        if (i < sobrante)
+                        {
+                            monedasRecibidas++;
+                        }
+
+                        participantesVivos[i].Personaje.Monedas += monedasRecibidas;
+
+                        monedasPorParticipante[participantesVivos[i].Personaje.Id] = monedasRecibidas;
+
+                        recompensaDistribuida += monedasRecibidas;
+                    }
+                }
+
+                //actualizar estado y resultado de la mision
+                mision.Estado = EstadoMision.Finalizada;
+                mision.Resultado = resultado;
+
+                //crear el DTO para mostrar el resultado
+                var ejecucionDto = new EjecucionMisionDto
+                {
+                    MisionId = mision.Id,
+                    NombreMision = mision.Nombre,
+                    Resultado = resultado.ToString(),
+                    PoderTotal = poderTotal,
+                    PoderMinimo = mision.PoderMinimo,
+                    ProbabilidadExito = probabilidadExito,
+                    RecompensaTotal = mision.Recompensa,
+                    RecompensaDistribuida = recompensaDistribuida,
+                    Participantes = participantes.Select(p => new ParticipanteEjecucionMisionDto
+                    {
+                        PersonajeId = p.Personaje.Id,
+                        Nombre = p.Personaje.Nombre,
+                        EstadoFinal = p.Personaje.Estado!.Value.ToString(),
+                        MonedasRecibidas = monedasPorParticipante.GetValueOrDefault(p.Personaje.Id, 0)
+                    }).ToList()
+                };
+
+                await _context.SaveChangesAsync();
+                await transaccion.CommitAsync();
+
+                return ResultadoOperacion<EjecucionMisionDto>.Exito(ejecucionDto);
+            }
+            catch
+            {
+                await transaccion.RollbackAsync();
+                throw;
+            }
         }
 
     }
