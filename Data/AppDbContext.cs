@@ -15,6 +15,7 @@ namespace ProyectoGalacticoWebApi.Data
         public DbSet<CardsPersonaje> CardsPersonajes => Set<CardsPersonaje>();
         public DbSet<Evento> Eventos => Set<Evento>();
         public DbSet<Mision> Misiones => Set<Mision>();
+        public DbSet<CredencialPersonaje> CredencialesPersonajes => Set<CredencialPersonaje>();
 
         // Tablas intermedias
         public DbSet<ParticipaEvento> ParticipaEventos => Set<ParticipaEvento>();
@@ -143,6 +144,21 @@ namespace ProyectoGalacticoWebApi.Data
                 e.Property(m => m.Estado).IsRequired();
                 e.Property(m => m.Resultado).IsRequired(false);
             });
+
+            modelBuilder.Entity<Personaje>()
+                .HasOne(p => p.CredencialPersonaje)
+                .WithOne(c => c.Personaje)
+                .HasForeignKey<CredencialPersonaje>(c => c.PersonajeId);
+
+            modelBuilder.Entity<CredencialPersonaje>(e =>
+            {
+                e.Property(c => c.PersonajeId).IsRequired();
+                e.Property(c => c.CodigoAccesoHash)
+                    .IsRequired();
+                e.Property(c => c.CanalDeComunicacion)
+                    .IsRequired();
+            });
+
 
         }
     }
