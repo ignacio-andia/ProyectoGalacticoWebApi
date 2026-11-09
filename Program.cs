@@ -27,7 +27,32 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "Catalogo Galactico API",
         Version = "v1",
-        Description = "API REST para gestionar personajes, cards, eventos, misiones y credenciales del universo Star Wars."
+        Description = """
+        # Catalogo Galactico
+
+        API REST desarrollada con ASP.NET Core Web API para administrar
+        personajes, cards, eventos y misiones del universo Star Wars.
+
+        ## Funcionalidades principales
+
+        - **Personajes:** registro, consulta, actualizacion y gestion de estados.
+        - **Cards:** administracion de poderes, habilidades y equipamiento.
+        - **Eventos:** gestion de participantes, enfrentamientos y resultados.
+        - **Misiones:** creacion, asignacion de participantes y ejecucion de misiones.
+        - **Credenciales:** almacenamiento seguro mediante hash y cifrado de datos.
+
+        ## Almacenamiento y seguridad
+
+        - Persistencia de datos mediante MySQL y Entity Framework Core.
+        - Contraseñas y codigos de acceso protegidos mediante hash.
+        - Informacion sensible protegida mediante cifrado AES-GCM.
+        - Validaciones y respuestas HTTP para las operaciones de la API.
+
+        ## Documentacion
+
+        Selecciona cualquiera de las operaciones disponibles para consultar
+        sus parametros, requisitos, descripciones y respuestas HTTP.
+        """
     });
 });
 
