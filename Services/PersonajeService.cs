@@ -13,6 +13,7 @@ namespace ProyectoGalacticoWebApi.Services
     {
         private readonly AppDbContext _context;
         private readonly ILogger<PersonajeService> _logger;
+
         public PersonajeService(AppDbContext context, ILogger<PersonajeService> logger)
         {
             _context = context;
@@ -22,6 +23,8 @@ namespace ProyectoGalacticoWebApi.Services
         public async Task<IEnumerable<PersonajeDto>> ListarPersonajesAsync()
         {
             var personajes = await _context.Personajes.AsNoTracking().ToListAsync();
+
+            _logger.LogInformation("Se listaron {Cantidad} personajes", personajes.Count);
 
             return personajes.Select(p => new PersonajeDto
             {
@@ -39,10 +42,14 @@ namespace ProyectoGalacticoWebApi.Services
         public async Task<PersonajeDto?> ObtenerPersonajePorIdAsync(int id)
         {
             var personaje = await _context.Personajes.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
-            if(personaje == null)
+            if (personaje == null)
             {
+                _logger.LogWarning("No se encontro el personaje con ID: {PersonajeId}", id);
                 return null;
             }
+
+            _logger.LogInformation("Se consulto el personaje con ID: {PersonajeId}", id);
+
             return new PersonajeDto
             {
                 Id = personaje.Id,
@@ -68,8 +75,12 @@ namespace ProyectoGalacticoWebApi.Services
                 FuerzaSensitiva = dto.FuerzaSensitiva,
                 ImagenUrl = dto.ImagenUrl
             };
+
             _context.Personajes.Add(personaje);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Personaje creado correctamente. ID: {PersonajeId}", personaje.Id);
+
             return new PersonajeDto
             {
                 Id = personaje.Id,
@@ -83,12 +94,12 @@ namespace ProyectoGalacticoWebApi.Services
             };
         }
 
-
         public async Task<bool> ActualizarPersonajeAsync(int Id, ActualizarPersonajeDto dto)
         {
             var personaje = await _context.Personajes.FirstOrDefaultAsync(p => p.Id == Id);
             if (personaje == null)
             {
+                _logger.LogWarning("No se pudo actualizar. No existe el personaje con ID: {PersonajeId}", Id);
                 return false;
             }
 
@@ -101,7 +112,10 @@ namespace ProyectoGalacticoWebApi.Services
             personaje.ImagenUrl = dto.ImagenUrl;
 
             await _context.SaveChangesAsync();
-            return true;    
+
+            _logger.LogInformation("Personaje actualizado correctamente. ID: {PersonajeId}", Id);
+
+            return true;
         }
 
         public async Task<bool> EliminarPersonajeAsync(int Id)
@@ -109,10 +123,15 @@ namespace ProyectoGalacticoWebApi.Services
             var personaje = await _context.Personajes.FirstOrDefaultAsync(p => p.Id == Id);
             if (personaje == null)
             {
+                _logger.LogWarning("No se pudo eliminar. No existe el personaje con ID: {PersonajeId}", Id);
                 return false;
             }
+
             _context.Personajes.Remove(personaje);
             await _context.SaveChangesAsync();
+
+            _logger.LogWarning("Personaje eliminado. ID: {PersonajeId}", Id);
+
             return true;
         }
 
@@ -121,6 +140,7 @@ namespace ProyectoGalacticoWebApi.Services
             var personaje = await _context.Personajes.FirstOrDefaultAsync(p => p.Id == id);
             if (personaje is null)
             {
+                _logger.LogWarning("No se pudo cambiar el estado. No existe el personaje con ID: {PersonajeId}", id);
                 return false;
             }
 
@@ -128,8 +148,9 @@ namespace ProyectoGalacticoWebApi.Services
 
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation("Estado del personaje actualizado. ID: {PersonajeId}, Nuevo estado: {Estado}", id, dto.Estado);
+
             return true;
         }
-
     }
 }
