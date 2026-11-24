@@ -5,8 +5,14 @@ using ProyectoGalacticoWebApi.Data;
 using ProyectoGalacticoWebApi.Models;
 using ProyectoGalacticoWebApi.Services;
 using ProyectoGalacticoWebApi.Services.Interfaces;
+using ProyectoGalacticoWebApi.Middlewares;
+using Serilog;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((contexto, configuracion) => configuracion.ReadFrom.Configuration(contexto.Configuration).Enrich.FromLogContext());
 
 var connectionString = builder.Configuration
     .GetConnectionString("DefaultConnection")
@@ -77,8 +83,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<ContextoPeticionMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
+
 
 app.Run();
 

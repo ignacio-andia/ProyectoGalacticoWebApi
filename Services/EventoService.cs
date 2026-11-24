@@ -11,9 +11,11 @@ namespace ProyectoGalacticoWebApi.Services
     public class EventoService : IEventoService
     {
         private readonly AppDbContext _context;
-        public EventoService(AppDbContext context)
+        private readonly ILogger<PersonajeService> _logger;
+        public EventoService(AppDbContext context, ILogger<PersonajeService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<EventoDto>> ListarEventosAsync()

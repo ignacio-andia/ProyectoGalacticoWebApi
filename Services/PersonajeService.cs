@@ -12,9 +12,11 @@ namespace ProyectoGalacticoWebApi.Services
     public class PersonajeService : IPersonajeService
     {
         private readonly AppDbContext _context;
-        public PersonajeService(AppDbContext context)
+        private readonly ILogger<PersonajeService> _logger;
+        public PersonajeService(AppDbContext context, ILogger<PersonajeService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<PersonajeDto>> ListarPersonajesAsync()

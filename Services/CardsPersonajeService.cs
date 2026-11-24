@@ -13,9 +13,11 @@ namespace ProyectoGalacticoWebApi.Services
     {
 
         private readonly AppDbContext _context;
-        public CardsPersonajeService(AppDbContext context)
+        private readonly ILogger<PersonajeService> _logger;
+        public CardsPersonajeService(AppDbContext context, ILogger<PersonajeService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<CardsPersonajeDto>> ListarCardsAsync()

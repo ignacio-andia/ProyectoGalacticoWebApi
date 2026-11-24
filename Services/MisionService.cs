@@ -11,10 +11,11 @@ namespace ProyectoGalacticoWebApi.Services
     public class MisionService : IMisionService
     {
         private readonly AppDbContext _context;
-
-        public MisionService(AppDbContext context)
+        private readonly ILogger<PersonajeService> _logger;
+        public MisionService(AppDbContext context, ILogger<PersonajeService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<ResultadoOperacion<MisionDto>> CrearMisionAsync(CrearMisionDto dto)

@@ -1,0 +1,4 @@
+[2026-11-24 19:41:28 INF] Now listening on: http://localhost:5126 {"EventId":{"Id":14,"Name":"ListeningOnAddress"},"SourceContext":"Microsoft.Hosting.Lifetime"}
+[2026-11-24 19:41:28 INF] Application started. Press Ctrl+C to shut down. {"SourceContext":"Microsoft.Hosting.Lifetime"}
+[2026-11-24 19:41:28 INF] Hosting environment: Development {"SourceContext":"Microsoft.Hosting.Lifetime"}
+[2026-11-24 19:41:28 INF] Content root path: C:\Users\LENOVO\source\repos\ProyectoGalacticoWebApi {"SourceContext":"Microsoft.Hosting.Lifetime"}
