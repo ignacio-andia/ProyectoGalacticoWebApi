@@ -4,15 +4,15 @@ using ProyectoGalacticoWebApi.Dtos;
 using ProyectoGalacticoWebApi.Models;
 using ProyectoGalacticoWebApi.Results;
 using ProyectoGalacticoWebApi.Services.Interfaces;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ProyectoGalacticoWebApi.Services
 {
     public class MisionService : IMisionService
     {
         private readonly AppDbContext _context;
-        private readonly ILogger<PersonajeService> _logger;
-        public MisionService(AppDbContext context, ILogger<PersonajeService> logger)
+        private readonly ILogger<MisionService> _logger;
+
+        public MisionService(AppDbContext context, ILogger<MisionService> logger)
         {
             _context = context;
             _logger = logger;
@@ -34,6 +34,8 @@ namespace ProyectoGalacticoWebApi.Services
             _context.Misiones.Add(mision);
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation("Mision creada correctamente. ID: {MisionId}, Nombre: {Nombre}", mision.Id, mision.Nombre);
+
             var misionDto = new MisionDto
             {
                 Id = mision.Id,
@@ -50,10 +52,11 @@ namespace ProyectoGalacticoWebApi.Services
             return ResultadoOperacion<MisionDto>.Exito(misionDto);
         }
 
-
         public async Task<IEnumerable<MisionDto>> ListarMisionesAsync()
         {
             var misiones = await _context.Misiones.AsNoTracking().ToListAsync();
+
+            _logger.LogInformation("Se listaron {Cantidad} misiones", misiones.Count);
 
             return misiones.Select(m => new MisionDto
             {
@@ -69,50 +72,73 @@ namespace ProyectoGalacticoWebApi.Services
             });
         }
 
-
         public async Task<ResultadoOperacion<bool>> AgregarParticipanteAsync(int misionId, int personajeId)
         {
             var mision = await _context.Misiones.AsNoTracking().FirstOrDefaultAsync(m => m.Id == misionId);
+
             if (mision is null)
             {
+                _logger.LogWarning("No se pudo agregar al personaje {PersonajeId}. No existe la mision {MisionId}", personajeId, misionId);
+
                 return ResultadoOperacion<bool>.Error(TipoResultado.NotFound, "La misión no existe");
             }
+
             if (mision.Estado != EstadoMision.Disponible)
             {
+                _logger.LogWarning("No se pudo agregar al personaje {PersonajeId}. La mision {MisionId} no esta disponible", personajeId, misionId);
+
                 return ResultadoOperacion<bool>.Error(TipoResultado.Conflict, "La misión ya no está disponible para agregar participantes");
             }
 
             var personaje = await _context.Personajes.AsNoTracking().FirstOrDefaultAsync(p => p.Id == personajeId);
+
             if (personaje is null)
             {
+                _logger.LogWarning("No se pudo agregar al personaje. No existe el personaje {PersonajeId}", personajeId);
+
                 return ResultadoOperacion<bool>.Error(TipoResultado.NotFound, "El personaje no existe");
             }
+
             if (personaje.Estado != EstadoPersonaje.Vivo)
             {
+                _logger.LogWarning("No se pudo agregar al personaje {PersonajeId}. Su estado es {Estado}", personajeId, personaje.Estado);
+
                 return ResultadoOperacion<bool>.Error(TipoResultado.BadRequest, "Solo pueden participar personajes vivos");
             }
 
             var tieneCard = await _context.CardsPersonajes.AsNoTracking().AnyAsync(c => c.PersonajeId == personajeId);
+
             if (!tieneCard)
             {
+                _logger.LogWarning("No se pudo agregar al personaje {PersonajeId}. No tiene Card", personajeId);
+
                 return ResultadoOperacion<bool>.Error(TipoResultado.BadRequest, "El personaje no tiene Card");
             }
 
             var yaParticipa = await _context.ParticipaMisiones.AsNoTracking().AnyAsync(pm => pm.IdPersonaje == personajeId && pm.IdMision == misionId);
+
             if (yaParticipa)
             {
+                _logger.LogWarning("El personaje {PersonajeId} ya participa en la mision {MisionId}", personajeId, misionId);
+
                 return ResultadoOperacion<bool>.Error(TipoResultado.Conflict, "El personaje ya participa en esta misión");
             }
 
             var participaEnOtraMision = await _context.ParticipaMisiones.AsNoTracking().AnyAsync(pm => pm.IdPersonaje == personajeId && pm.Mision.Estado == EstadoMision.Disponible);
+
             if (participaEnOtraMision)
             {
+                _logger.LogWarning("No se pudo agregar al personaje {PersonajeId}. Ya participa en otra mision disponible", personajeId);
+
                 return ResultadoOperacion<bool>.Error(TipoResultado.Conflict, "El personaje ya participa en otra misión que todavía no ha finalizado");
             }
 
             var faccionExistente = await _context.ParticipaMisiones.AsNoTracking().Where(pm => pm.IdMision == misionId).Select(pm => (Faccion?)pm.Personaje.Faccion).FirstOrDefaultAsync();
+
             if (faccionExistente.HasValue && faccionExistente.Value != personaje.Faccion)
             {
+                _logger.LogWarning("No se pudo agregar al personaje {PersonajeId}. Su faccion no coincide con la de la mision {MisionId}", personajeId, misionId);
+
                 return ResultadoOperacion<bool>.Error(TipoResultado.BadRequest, "Todos los participantes de una misión deben pertenecer a la misma facción");
             }
 
@@ -125,42 +151,59 @@ namespace ProyectoGalacticoWebApi.Services
             _context.ParticipaMisiones.Add(participacion);
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation("Personaje {PersonajeId} inscrito correctamente en la mision {MisionId}", personajeId, misionId);
+
             return ResultadoOperacion<bool>.Exito(true);
         }
-
 
         public async Task<ResultadoOperacion<EjecucionMisionDto>> IniciarMisionAsync(int misionId)
         {
             //ver si mision existe y esta disponible
             var mision = await _context.Misiones.FirstOrDefaultAsync(m => m.Id == misionId);
+
             if (mision is null)
             {
+                _logger.LogWarning("No se pudo iniciar la mision. No existe la mision {MisionId}", misionId);
+
                 return ResultadoOperacion<EjecucionMisionDto>.Error(TipoResultado.NotFound, "La misión no existe");
             }
+
             if (mision.Estado != EstadoMision.Disponible)
             {
+                _logger.LogWarning("No se pudo iniciar la mision {MisionId}. No esta disponible", misionId);
+
                 return ResultadoOperacion<EjecucionMisionDto>.Error(TipoResultado.Conflict, "La misión ya fue ejecutada o no está disponible");
             }
 
             //ver si hay participantes en la mision
             var participantes = await _context.ParticipaMisiones.Where(pm => pm.IdMision == misionId).Include(pm => pm.Personaje).ThenInclude(p => p.CardsPersonaje).ToListAsync();
+
             if (!participantes.Any())
             {
+                _logger.LogWarning("No se pudo iniciar la mision {MisionId}. No tiene participantes", misionId);
+
                 return ResultadoOperacion<EjecucionMisionDto>.Error(TipoResultado.BadRequest, "La misión no tiene participantes");
             }
 
             //verificar que todos los participantes tengan Card
             if (participantes.Any(p => p.Personaje.CardsPersonaje is null))
             {
+                _logger.LogWarning("No se pudo iniciar la mision {MisionId}. Hay participantes sin Card", misionId);
+
                 return ResultadoOperacion<EjecucionMisionDto>.Error(TipoResultado.BadRequest, "Uno o más participantes no tienen Card");
             }
 
             //validar si cumplen con el poder minimo
             var poderTotal = participantes.Sum(p => p.Personaje.CardsPersonaje.Poder);
+
             if (poderTotal < mision.PoderMinimo)
             {
+                _logger.LogWarning("No se pudo iniciar la mision {MisionId}. Poder total: {PoderTotal}, Poder minimo: {PoderMinimo}", misionId, poderTotal, mision.PoderMinimo);
+
                 return ResultadoOperacion<EjecucionMisionDto>.Error(TipoResultado.BadRequest, "El poder total de los participantes no alcanza el mínimo requerido para esta misión");
             }
+
+            _logger.LogInformation("Iniciando mision {MisionId} con {CantidadParticipantes} participantes y poder total {PoderTotal}", misionId, participantes.Count, poderTotal);
 
             //calculos de probabilidad de exito
             double probabilidadExito = 50 + (((double)(poderTotal - mision.PoderMinimo) / mision.PoderMinimo) * 20) - (mision.NivelDeDificultad * 5);
@@ -246,14 +289,17 @@ namespace ProyectoGalacticoWebApi.Services
                 await _context.SaveChangesAsync();
                 await transaccion.CommitAsync();
 
+                _logger.LogInformation("Mision {MisionId} finalizada. Resultado: {Resultado}, Poder total: {PoderTotal}, Probabilidad de exito: {ProbabilidadExito}%, Recompensa distribuida: {RecompensaDistribuida}, Participantes: {CantidadParticipantes}", misionId, resultado, poderTotal, probabilidadExito, recompensaDistribuida, participantes.Count);
+
                 return ResultadoOperacion<EjecucionMisionDto>.Exito(ejecucionDto);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Error inesperado al ejecutar la mision {MisionId}", misionId);
+
                 await transaccion.RollbackAsync();
                 throw;
             }
         }
-
     }
 }
