@@ -23,6 +23,8 @@ namespace ProyectoGalacticoWebApi.Services
         public async Task<IEnumerable<CardsPersonajeDto>> ListarCardsAsync()
         {
             var cards = await _context.CardsPersonajes.AsNoTracking().ToListAsync();
+
+            _logger.LogInformation("Se listaron {Cantidad} cards", cards.Count);
             return cards.Select(c => new CardsPersonajeDto
             {
                 Id = c.Id,
@@ -39,8 +41,11 @@ namespace ProyectoGalacticoWebApi.Services
             var card = await _context.CardsPersonajes.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
             if (card == null)
             {
+                _logger.LogWarning("No se encontro la Card con ID: {CardId}", id);
                 return null;
             }
+
+            _logger.LogInformation("Se consulto la Card con ID: {CardId}", id);
 
             return new CardsPersonajeDto
             {
@@ -58,8 +63,11 @@ namespace ProyectoGalacticoWebApi.Services
             var card = await _context.CardsPersonajes.AsNoTracking().FirstOrDefaultAsync(c => c.PersonajeId == id);
             if (card == null)
             {
+                _logger.LogWarning("El personaje con ID {PersonajeId} no tiene una Card asignada", id);
                 return null;
             }
+
+            _logger.LogInformation("Se consulto la Card del personaje {PersonajeId}", id);
 
             return new CardsPersonajeDto
             {
@@ -79,14 +87,18 @@ namespace ProyectoGalacticoWebApi.Services
 
             if (!personajeExiste)
             {
-                return ResultadoOperacion<CardsPersonajeDto>.Error(TipoResultado.NotFound,"El personaje indicado no existe.");
+                _logger.LogWarning("No se pudo crear la Card. No existe el personaje con ID: {PersonajeId}", dto.PersonajeId);
+
+                return ResultadoOperacion<CardsPersonajeDto>.Error(TipoResultado.NotFound, "El personaje indicado no existe.");
             }
 
             bool yaTieneCard = await _context.CardsPersonajes.AnyAsync(c => c.PersonajeId == dto.PersonajeId);
 
             if (yaTieneCard)
             {
-                return ResultadoOperacion<CardsPersonajeDto>.Error(TipoResultado.Conflict,"El personaje ya tiene una Card asignada.");
+                _logger.LogWarning("No se pudo crear la Card. El personaje {PersonajeId} ya tiene una Card asignada", dto.PersonajeId);
+
+                return ResultadoOperacion<CardsPersonajeDto>.Error(TipoResultado.Conflict, "El personaje ya tiene una Card asignada.");
             }
 
             var card = new CardsPersonaje
@@ -100,6 +112,7 @@ namespace ProyectoGalacticoWebApi.Services
 
             _context.CardsPersonajes.Add(card);
             await _context.SaveChangesAsync();
+            _logger.LogInformation("Card creada correctamente. ID: {CardId}, PersonajeId: {PersonajeId}", card.Id, card.PersonajeId);
 
             var cardDto = new CardsPersonajeDto
             {
@@ -145,6 +158,7 @@ namespace ProyectoGalacticoWebApi.Services
             card.PersonajeId = dto.PersonajeId;
 
             await _context.SaveChangesAsync();
+            _logger.LogInformation("Card actualizada correctamente. ID: {CardId}, PersonajeId: {PersonajeId}", id, dto.PersonajeId);
 
             return ResultadoOperacion<bool>.Exito(true);
         }
@@ -156,11 +170,14 @@ namespace ProyectoGalacticoWebApi.Services
 
             if (card == null)
             {
-                return ResultadoOperacion<bool>.Error( TipoResultado.NotFound,"La Card indicada no existe.");
+                _logger.LogWarning("No se pudo eliminar. No existe la Card con ID: {CardId}", id);
+
+                return ResultadoOperacion<bool>.Error(TipoResultado.NotFound, "La Card indicada no existe.");
             }
 
             _context.CardsPersonajes.Remove(card);
             await _context.SaveChangesAsync();
+            _logger.LogWarning("Card eliminada. ID: {CardId}, PersonajeId: {PersonajeId}", id, card.PersonajeId);
             return ResultadoOperacion<bool>.Exito(true); // esta cosa es recomedacion de chat GPT, la verdad, pense que esataba avanzondo bien, hasta que le muestro y me dice "manejar de esta froma las exepciones puede provocar errore" >:V (Dios!!!... se que es bunea recomendacion, pero, como hiba a saber? 'V)
         }
 
